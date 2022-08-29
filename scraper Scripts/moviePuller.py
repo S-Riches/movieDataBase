@@ -1,8 +1,9 @@
 # imports
 from requests_html import HTMLSession
+import requests
 
-# work out how to make this async because atm it takes years to get movie info back for one site, let alone multiple
-
+# work out how to make this entire script async because atm it takes years to get movie info back for one site, let alone multiple
+movies = []
 # this function will get the free to watch films from amazon prime, and then put them into a list to then filter through
 def getPrimeFilms():
     # create a HTML session object
@@ -16,17 +17,14 @@ def getPrimeFilms():
     # note #2 i realise now it would be much more efficient to just get the content from AJAX instead of scrolling to the bottom but IIABDFI
     r.html.render(sleep=1, scrolldown=50)
     # find this each of this class in a page and create a list
-    movies = r.html.find('.av-beard-title-link')
+    mov = r.html.find('.av-beard-title-link')
     #TODO perhaps get the year from the scrape and assign it in the dictionary
     # for each item in the list of the movies
-    for item in movies:
-        #create a dictionary called movie
-        movie = {
-            # set the movie title as the text
-            'Prime Movie Title' : item.text
-        }
-        # print it
-        print(movie)
+    for item in mov:
+        #append movies
+        movies.append(item.text)
+    # use this or else headless chromium pages wont close which drains memory
+    r.close()
     
 def getNowTVFilms():
     # create a HTML session object
@@ -37,18 +35,48 @@ def getNowTVFilms():
     r = session.get(url)
     # now the r object is (due to prime video being a javascript focused page) a lot of code and not a lot of information, so we have to use the render function
     # TODO this website uses pages that load on scroll to display different films - therefore i need to write code to work out how many films are on one page - then to change page after that many films are scraped
-    r.html.render(sleep=1)
+    r.html.render()
     # find this each of this class in a page and create a list
-    movies = r.html.find('.ib-card-title')
+    mov = r.html.find('.ib-card-title')
     # for each item in the list of the movies
-    for item in movies:
-        #create a dictionary called movie
-        movie = {
-            # set the movie title as the text
-            'NowTV Movie Title' : item.text
-        }
-        # print it
-        print(movie)
+    for item in mov:
+        # add to list
+        movies.append(item.text)
+    r.close()
+
+def makeJsonRequest(url):
+    # due to channel 4 having a show more button, to get all content i am going to pull the JSON for each page and filter through it this way
+    # create a request to the url
+    response = requests.get(url)
+    # prints incase of an error
+    response.raise_for_status()
+    # formats the response as a JSON
+    jsonResponse = response.json()
+    # allows me to key to only the important information
+    return jsonResponse
+
+
+def getAll4Films():
+    session = HTMLSession()
+    url = 'https://www.channel4.com/categories/film'
+    r = session.get(url)
+    r.html.render()
+    titles = r.html.find('.all4-slice-item__title')
+    for i in titles:
+        movies.append(i.text)
         
-#getPrimeFilms()
+    # scrape the other pages - note if they offset more this will only do these pages, so there is probably a better way to do this
+    for i in range(20, 100, 20):
+        json = makeJsonRequest('https://www.channel4.com/categories/film?json=true&offset='+str(i)) 
+        # go through the dictioary keys
+        for x in json["brands"]["items"]:
+            # append list with titles
+            movies.append(x['labelText'])
+    print(movies)
+    r.close()
+
+# TODO make a way to diverge which films are from which site - also it would make a lot more sense to make this script async so that we can do multiple scrapes at a time.
+
+getPrimeFilms()
 getNowTVFilms()
+getAll4Films()
