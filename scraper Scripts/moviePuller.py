@@ -2,10 +2,9 @@
 from requests_html import HTMLSession
 import requests
 
-# work out how to make this entire script async because atm it takes years to get movie info back for one site, let alone multiple
-movies = []
-# this function will get the free to watch films from amazon prime, and then put them into a list to then filter through
+# this function will get the 'free' to watch films from amazon prime, and then put them into a list to then filter through
 def getPrimeFilms():
+    primeMovies = []
     # create a HTML session object
     session = HTMLSession()
     # variable to contain the url
@@ -22,11 +21,13 @@ def getPrimeFilms():
     # for each item in the list of the movies
     for item in mov:
         #append movies
-        movies.append(item.text)
+        primeMovies.append(item.text)
     # use this or else headless chromium pages wont close which drains memory
     r.close()
+    return primeMovies
     
 def getNowTVFilms():
+    nowMovies = []
     # create a HTML session object
     session = HTMLSession()
     # variable to contain the url
@@ -35,14 +36,24 @@ def getNowTVFilms():
     r = session.get(url)
     # now the r object is (due to prime video being a javascript focused page) a lot of code and not a lot of information, so we have to use the render function
     # TODO this website uses pages that load on scroll to display different films - therefore i need to write code to work out how many films are on one page - then to change page after that many films are scraped
+    # TODO pt 2, tried to get the data from now TV AJAX but keep getting error code 400, bit stumped at the moment but i can still get the data via scraping the page - however at a slower speed.
     r.html.render()
     # find this each of this class in a page and create a list
     mov = r.html.find('.ib-card-title')
     # for each item in the list of the movies
     for item in mov:
         # add to list
-        movies.append(item.text)
+        nowMovies.append(item.text)
+    for i in range(1, 21):
+        # dirty fix atm to get all of the films needed for this website
+        url = 'https://www.nowtv.com/stream/all-movies/page/'+str(i)
+        r = session.get(url)
+        mov = r.html.find('.ib-card-title')
+        for item in mov:
+            nowMovies.append(item.text)
+        print("scanning page ", i)
     r.close()
+    return nowMovies
 
 def makeJsonRequest(url):
     # due to channel 4 having a show more button, to get all content i am going to pull the JSON for each page and filter through it this way
@@ -57,13 +68,14 @@ def makeJsonRequest(url):
 
 
 def getAll4Films():
+    all4Movies = []
     session = HTMLSession()
     url = 'https://www.channel4.com/categories/film'
     r = session.get(url)
     r.html.render()
     titles = r.html.find('.all4-slice-item__title')
     for i in titles:
-        movies.append(i.text)
+        all4Movies.append(i.text)
         
     # scrape the other pages - note if they offset more this will only do these pages, so there is probably a better way to do this
     for i in range(20, 100, 20):
@@ -71,12 +83,21 @@ def getAll4Films():
         # go through the dictioary keys
         for x in json["brands"]["items"]:
             # append list with titles
-            movies.append(x['labelText'])
-    print(movies)
+            all4Movies.append(x['labelText'])
     r.close()
+    return all4Movies
 
-# TODO make a way to diverge which films are from which site - also it would make a lot more sense to make this script async so that we can do multiple scrapes at a time.
-
-getPrimeFilms()
-getNowTVFilms()
-getAll4Films()
+#debug area
+# TODO make this script async so that we can do multiple scrapes at a time.
+# print("PRIME FILMS -- \n")
+# prime = getPrimeFilms()
+# for i in prime:
+#     print(i)
+# print("NOW TV FILMS -- \n")
+# now = getNowTVFilms()
+# for i in now:
+#     print(i)
+# print("ALL 4 FILMS -- \n")
+# all4 = getAll4Films()
+# for i in all4:
+#     print(i)
