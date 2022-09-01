@@ -1,6 +1,4 @@
 # imports
-from imp import reload
-from operator import truediv
 from requests_html import HTMLSession, HTMLSession
 import requests
 

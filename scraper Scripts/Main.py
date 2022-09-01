@@ -45,7 +45,7 @@ def SqlSend(data):
 def addFilms():
     #TODO need to check if the film already exists in the db, if so skip it and check the next one - then remove if its not in the current list. this will stop duplication of data
     # blank list
-    movieJson = []
+    movies = []
     # initial scrapes to populate sql tables
     # TODO make these scrape all at the same time. - possibly with threading as it will make this faster
     try:
@@ -64,24 +64,24 @@ def addFilms():
             "film name" : i
         }
         # append it to the list
-        movieJson.append(mov)
+        movies.append(mov)
     for i in nowList:
         mov = {
             "site" : "Now TV",
             "film name" : i
         }
-        movieJson.append(mov)
+        movies.append(mov)
     for i in all4List:
         mov = {
             "site" : "All4",
             "film name" : i
         }
-        movieJson.append(mov)
+        movies.append(mov)
 
     # update table if film isnt in there,
     try:
         # try to send the film to the sql db
-        for item in movieJson:
+        for item in movies:
             SqlSend(item)
     except:
         print("Film already exists")
