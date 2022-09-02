@@ -1,5 +1,6 @@
 #imports
 #from threading import Thread
+from fileinput import filename
 import moviePuller
 from flask import Flask
 from dotenv import load_dotenv
@@ -24,53 +25,59 @@ def SqlSend(data):
     )
     # creates a cursor object to command
     mycursor = db.cursor()
-    # insert command
-    sql = "INSERT INTO movies (site, filmName) VALUES (%s, %s);"
+    # insert command (note the ignore means that if data is in the db already, dont put it in there)
+    sql = "INSERT IGNORE INTO movies (site, filmName) VALUES (%s, %s);"
     # create blank list
     dataFormat = []
     #ignores the key values, only puts the values into the sql insert
     for i in data.values():
         #add the values to a list
         dataFormat.append(i)
+    # getting an error atm where im getting unread results - i think this is due to the library - so i will need to look into alternative methods to check for pre-existing database items
+    sqlCheck = 'SELECT COUNT(*) from movies where filmName like "{filmName}"'.format(filmName=dataFormat)
+    mycursor.execute(sqlCheck)
+    print(mycursor)
     # send the insert request, along with the data that is now formatted to be sent
-    mycursor.execute(sql, dataFormat)
+    #mycursor.execute(sql, dataFormat)
     # commit the change
     db.commit()
     # flavour text
-    print(mycursor, " was inserted.")
+    print(dataFormat, " was inserted.")
     #close the connection
     db.close()
 
 # script that gets the films from the scraper script, then puts them into sql db
-def addFilms():
-    #TODO need to check if the film already exists in the db, if so skip it and check the next one - then remove if its not in the current list. this will stop duplication of data
+def scraperManager():
     # blank list
     movies = []
     # initial scrapes to populate sql tables
     # TODO make these scrape all at the same time. - possibly with threading as it will make this faster
     try:
-        primeList = moviePuller.getPrimeFilms()
-        nowList = moviePuller.getNowTVFilms()
+        # this will attempt to get these three functions to scrape
+        # primeList = moviePuller.getPrimeFilms()
+        # nowList = moviePuller.getNowTVFilms()
         all4List = moviePuller.getAll4Films()
-    except Exception:
+    except Exception as err:
         # just print the issue to the console and continue with the other scrapes
-        print(Exception)
+        print(err)
         pass
-        
+    
+
+    # check that there has been sucess with each before trying to append.
     # for each element in the list, turn it into a dictionary
-    for i in primeList:
-        mov = {
-            "site" : "Prime video",
-            "film name" : i
-        }
-        # append it to the list
-        movies.append(mov)
-    for i in nowList:
-        mov = {
-            "site" : "Now TV",
-            "film name" : i
-        }
-        movies.append(mov)
+    # for i in primeList:
+    #     mov = {
+    #         "site" : "Prime video",
+    #         "film name" : i
+    #     }
+    #     # append it to the list
+    #     movies.append(mov)
+    # for i in nowList:
+    #     mov = {
+    #         "site" : "Now TV",
+    #         "film name" : i
+    #     }
+    #     movies.append(mov)
     for i in all4List:
         mov = {
             "site" : "All4",
@@ -83,12 +90,11 @@ def addFilms():
         # try to send the film to the sql db
         for item in movies:
             SqlSend(item)
-    except:
-        print("Film already exists")
+    except Exception as err:
+        print("error : ", err)
         pass
 
-
-addFilms()
+scraperManager()
 
 #API SECTION
 
@@ -103,7 +109,7 @@ def default():
 # these paths will come back with sql data.
 @app.route("/prime")
 def postPrime():
-    return "<p> list = {list} </p>".format(list = primeMovies)
+    return "<p> list = {list} </p>".format(list = "x")
 @app.route("/now")
 def postNow():
     pass
