@@ -21,6 +21,7 @@ def getPrimeFilms():
         primeMovies.append(item.text)
     # use this or else headless chromium pages wont close which drains memory
     r.close()
+    print("Prime Video Scrape /")
     return primeMovies
     
 def getNowTVFilms():
@@ -47,8 +48,8 @@ def getNowTVFilms():
         mov = r.html.find('.ib-card-title')
         for item in mov:
             nowMovies.append(item.text)
-        print("scanning page ", i)
     r.close()
+    print("NowTV Scrape /")
     return nowMovies
 
 def makeJsonRequest(url):
@@ -81,5 +82,6 @@ def getAll4Films():
             # append list with titles
             all4Movies.append(x['labelText'])
     r.close()
+    print("All4 Scrape /")
     return all4Movies
 
