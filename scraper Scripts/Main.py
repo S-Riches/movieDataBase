@@ -1,6 +1,5 @@
 #imports
-#from threading import Thread
-import string
+import time
 import moviePuller
 from flask import Flask
 from dotenv import load_dotenv
@@ -32,11 +31,10 @@ def SqlSend(data):
     for i in data.values():
         #add the values to a list
         dataFormat.append(i)
-    #TODO MAKE SURE THAT THE SAME FILM ON ANOTHER SITE ALSO WORKS
     # this is for when searching for the film later
     dataFormat[1] = dataFormat[1].lower()
     #sql to see if the film is already in the database
-    sqlCheck = 'SELECT COUNT(*) from movies where filmName like "{filmName}"'.format(filmName=dataFormat[1])
+    sqlCheck = 'SELECT COUNT(*) from movies where filmName like "{filmName}" and site like "{site}" '.format(site=dataFormat[0],filmName=dataFormat[1])
     # execute a prior check to see if the data is in the database
     mycursor.execute(sqlCheck)
     # save the cursor text as a variable
@@ -79,11 +77,62 @@ def findFilm(filmTitle):
         # example of return data 
         # comes back as a list with a tuple inside, can then ignore the id and just return the platform and film title to the user
         # [(11800, 'Prime video', 'ted')]
-        # log to console
-        print(returnText)
+        if(len(returnText) > 0):
+            # log to console
+            print(returnText)
+        else:
+            print("Film Not found")
+            # rescrape?     
     else:
         # return an error
+        print("Bad Request")
         pass
+
+# this function is going to be incharge of getting rid of films no longer in the database, aswell as rescrapes, to use this just plug the old list in to compare
+def pruneOldFilms(oldList):
+    
+    # initally rescrape the sites
+    newList = scraperManager()
+    print("Pruning old films from database")
+    # compare the items in both
+    for item in newList:
+        if (item in oldList):
+            print("{item} still in database".format(item=item))
+        else:
+            print("{item} not in database, pruning".format(item=item))
+            
+            # this gets the data from .env and creates a connection to the sql server
+            db = mysql.connector.connect(
+                host = os.environ.get("host"),
+                username = os.environ.get("sqlusername"),
+                password = os.environ.get("password"),
+                database = os.environ.get("database")
+            )
+            #create a cursor
+            mycursor = db.cursor()
+            # due to dictionary items not being subscriptable i have to convert it to a list
+            formattedData = []
+            # for each item in the values of the dictionary
+            for i in item.values():
+                # add to a list
+                formattedData.append(i)
+            # delete old movie from database query
+            sql = 'DELETE FROM movies WHERE filmName like "{filmName}" and site like "{site}"'.format(filmName=formattedData[1].lower(), site=formattedData[0])
+            # try command
+            try:
+                # execute the query
+                mycursor.execute(sql)
+                # print result
+                print("Deleted!")
+            except Exception as err:
+                # print the error
+                print(err)
+            #ensure it saves the change
+            db.commit()
+            #close connections
+            mycursor.close()
+            db.close()
+                
 
 
 # script that gets the films from the scraper script, then puts them into sql db
@@ -91,7 +140,6 @@ def scraperManager():
     # blank list
     movies = []
     # initial scrapes to populate sql tables
-    # TODO make these scrape all at the same time. - possibly with threading as it will make this faster
     try:
         # this will attempt to get these three functions to scrape
         primeList = moviePuller.getPrimeFilms()
@@ -148,19 +196,27 @@ def scraperManager():
         except Exception as err:
             # else just print the error
             print("error : ", err)
+    # for pruning
+    return movies
 
+start = time.perf_counter()
 # initial scrape function call when api starts up
-scraperManager()
+oldList = scraperManager()
+finish = time.perf_counter()
+# nice little performance monitor
+print("Time taken = {time} seconds".format(time=round(finish-start)))
+
+# command needed for the scheduling part of the backend
+# pruneOldFilms(oldList)
+
 #API SECTION
 # interface for the sql database to the client, will do things such as request rescrapes for missing films - and returning film data to the client
-
 app = Flask(__name__)
 
 # default path for the api
 @app.route("/")
 def default():
     return "<p> this is default route nerd - try /prime or something</p>"
-
 # these paths will come back with sql data.
 @app.route("/prime")
 def postPrime():
