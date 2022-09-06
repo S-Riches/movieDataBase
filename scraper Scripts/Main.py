@@ -1,4 +1,5 @@
 #imports
+import atexit
 import time
 import moviePuller
 from flask import Flask
@@ -6,6 +7,7 @@ from dotenv import load_dotenv
 import os
 import mysql.connector
 from os.path import join, dirname
+from apscheduler.schedulers.background import BackgroundScheduler # adds support for scheduling functions to be run - in this use case i need to prune and rescrape everyday
 
 # this is for the environment variables - meaning i dont have to share the passwords and hostnames for my servers - v good
 dotEnvPath = join(dirname(__file__), '.env')
@@ -49,12 +51,11 @@ def SqlSend(data):
         print(dataFormat, " was inserted.")
     else:
         print(dataFormat[1], "Was found in table -- skipping")
-        pass
     #close the connection
     mycursor.close()
     db.close()
 
-# function that will be used to find a film in either the database, or on a rescan.
+# function that will be used to find a film in either the database.
 def findFilm(filmTitle):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
@@ -82,11 +83,10 @@ def findFilm(filmTitle):
             print(returnText)
         else:
             print("Film Not found")
-            # rescrape?     
+            # return that the film cant be found and that the user should try again tommorrow. 
     else:
         # return an error
         print("Bad Request")
-        pass
 
 # this function is going to be incharge of getting rid of films no longer in the database, aswell as rescrapes, to use this just plug the old list in to compare
 def pruneOldFilms(oldList):
@@ -127,15 +127,15 @@ def pruneOldFilms(oldList):
             except Exception as err:
                 # print the error
                 print(err)
-            #ensure it saves the change
+            # commit the change
             db.commit()
-            #close connections
+            # close connections
             mycursor.close()
             db.close()
                 
 
 
-# script that gets the films from the scraper script, then puts them into sql db
+# function that gets the films from the scraper script, then puts them into sql db
 def scraperManager():
     # blank list
     movies = []
@@ -145,12 +145,11 @@ def scraperManager():
         primeList = moviePuller.getPrimeFilms()
         nowList = moviePuller.getNowTVFilms()
         all4List = moviePuller.getAll4Films()
-        pass
+        
     except Exception as err:
         # just print the issue to the console and continue with the other scrapes
         print(err)
-        pass
-
+    
     # this line checks if the variable exists, we use this to manage which functions sucessfully called - as they will only exist if they pass
     if 'primeList' in locals():
         # for each element in the list, turn it into a dictionary
@@ -164,8 +163,7 @@ def scraperManager():
     else:
         # TODO schedule a rescrape if this doesnt work
         print("Prime video Scrape X")
-        pass
-        
+    
     if 'nowList' in locals():
         for i in nowList:
             mov = {
@@ -175,7 +173,6 @@ def scraperManager():
             movies.append(mov)
     else:
         print("Now TV Scrape X")
-        pass
 
     if 'all4List' in locals():
         for i in all4List:
@@ -186,7 +183,6 @@ def scraperManager():
             movies.append(mov)
     else:
         print("All4 Scrape X")
-        pass
 
     # for each movie in the list
     for item in movies:
@@ -210,13 +206,24 @@ print("Time taken = {time} seconds".format(time=round(finish-start)))
 # pruneOldFilms(oldList)
 
 #API SECTION
-# interface for the sql database to the client, will do things such as request rescrapes for missing films - and returning film data to the client
+# create app
 app = Flask(__name__)
 
+# scheduler for daily rescrapes
+# initialize the scheduler
+scheduler = BackgroundScheduler()
+# schedule a prune everyday at 10pm to referesh the database
+# a cron is a unix job scheduler command line utility - very useful for servers and very useful for my project
+scheduler.add_job(func=pruneOldFilms, args=[oldList], trigger="cron", hour="22")
+# start the scheduler
+scheduler.start()
+
+# interface for the sql database to the client, will do things such as request rescrapes for missing films - and returning film data to the client
 # default path for the api
 @app.route("/")
 def default():
     return "<p> this is default route nerd - try /prime or something</p>"
+@app.route("/findFilm")
 # these paths will come back with sql data.
 @app.route("/prime")
 def postPrime():
@@ -227,3 +234,10 @@ def postNow():
 @app.route("/all")
 def postAll4():
     pass
+
+# start app
+if __name__ == '__main__':
+    app.run()
+
+# stop the scheduler when app closes
+atexit.register(lambda: scheduler.shutdown())

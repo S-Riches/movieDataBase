@@ -13,6 +13,7 @@ Once the project is done i will include the full list of libraries used within p
 - Dotenv
 - mysql-connector
 - os (obviously)
+- time (for performance monitoring)
 
 
 I will also make a focus to use Docker to make my program more portable incase i ever want to show someone it.
