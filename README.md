@@ -14,6 +14,8 @@ Once the project is done i will include the full list of libraries used within p
 - mysql-connector
 - os (obviously)
 - time (for performance monitoring)
+- signal (needed for program control)
+- json (for formatting)
 
 
 I will also make a focus to use Docker to make my program more portable incase i ever want to show someone it.
