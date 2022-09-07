@@ -1,8 +1,9 @@
 #imports
-import atexit
+import signal
+import json
 import time
 import moviePuller
-from flask import Flask
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 import os
 import mysql.connector
@@ -80,17 +81,55 @@ def findFilm(filmTitle):
         # [(11800, 'Prime video', 'ted')]
         if(len(returnText) > 0):
             # log to console
-            print(returnText)
+            film = returnText
+            return film
+
         else:
+            # return that the film cant be found and that the user should try again tommorrow. 
             print("Film Not found")
+            return None
+    else:
+        # return an error
+        print("Bad Request")
+        return None
+
+# get films by site
+def findFilmsOfSite(site):
+    # this gets the data from .env and creates a connection to the sql server
+    db = mysql.connector.connect(
+        host = os.environ.get("host"),
+        username = os.environ.get("sqlusername"),
+        password = os.environ.get("password"),
+        database = os.environ.get("database")
+    )
+    #create a cursor
+    mycursor = db.cursor()
+    # data validation for making sure the correct kind of data is put in
+    if (str(site)):
+        # sql query to find data on film
+        sql = 'SELECT * FROM movies WHERE site like "{site}";'.format(site=site)
+        # run the query
+        mycursor.execute(sql)
+        # save return text to parse to user
+        returnText = mycursor.fetchall()
+        # example of return data 
+        # comes back as a list with a tuple inside, can then ignore the id and just return the platform and film title to the user
+        # [(11800, 'Prime video', 'ted')]
+        if(len(returnText) > 0):
+            # log to console
+            print(returnText)
+            # convert to json obj
+            filmJsonObject = json.dumps(returnText)
+        else:
+            print("Films Not found")
             # return that the film cant be found and that the user should try again tommorrow. 
     else:
         # return an error
         print("Bad Request")
+    return filmJsonObject
 
 # this function is going to be incharge of getting rid of films no longer in the database, aswell as rescrapes, to use this just plug the old list in to compare
 def pruneOldFilms(oldList):
-    
     # initally rescrape the sites
     newList = scraperManager()
     print("Pruning old films from database")
@@ -132,11 +171,10 @@ def pruneOldFilms(oldList):
             # close connections
             mycursor.close()
             db.close()
-                
-
 
 # function that gets the films from the scraper script, then puts them into sql db
 def scraperManager():
+    print("-- Scraping Sites --")
     # blank list
     movies = []
     # initial scrapes to populate sql tables
@@ -199,13 +237,10 @@ start = time.perf_counter()
 # initial scrape function call when api starts up
 oldList = scraperManager()
 finish = time.perf_counter()
-# nice little performance monitor
-print("Time taken = {time} seconds".format(time=round(finish-start)))
-
-# command needed for the scheduling part of the backend
-# pruneOldFilms(oldList)
-
-#API SECTION
+# nice little performance monitor with green text colour
+print("\033[1;32m Time taken = {time} seconds".format(time=round(finish-start)))
+print("Starting Flask")
+# API SECTION
 # create app
 app = Flask(__name__)
 
@@ -218,26 +253,52 @@ scheduler.add_job(func=pruneOldFilms, args=[oldList], trigger="cron", hour="22")
 # start the scheduler
 scheduler.start()
 
+# shutdown function
+def schedulerShutdown(signum, frame):
+    print("Shutting down")
+    scheduler.shutdown(wait=False)
+    exit(1)
+
 # interface for the sql database to the client, will do things such as request rescrapes for missing films - and returning film data to the client
 # default path for the api
 @app.route("/")
 def default():
+    # perhaps return all films?
     return "<p> this is default route nerd - try /prime or something</p>"
-@app.route("/findFilm")
-# these paths will come back with sql data.
+
+# api route for finding a film in the database
+@app.route("/findFilm", methods=["GET"])
+def filmRequest():
+    # if the request method is GET
+    if request.method == "GET":
+        # payload of the request
+        y = request.get_json()
+        # we store the request to the filmname
+        filmName = y["filmName"]
+    
+    x = findFilm(filmName)    
+    return jsonify(x)
+
+# api route to return all films from each site 
 @app.route("/prime")
 def postPrime():
-    return "<p> list = {list} </p>".format(list = "x")
+    prime = findFilmsOfSite("Prime video")
+    return prime
+
 @app.route("/now")
 def postNow():
-    pass
+    now = findFilmsOfSite("Now TV")
+    return now
+
 @app.route("/all")
 def postAll4():
-    pass
+    all4 = findFilmsOfSite("all4")
+    return all4
 
 # start app
 if __name__ == '__main__':
     app.run()
 
-# stop the scheduler when app closes
-atexit.register(lambda: scheduler.shutdown())
+# catch ctrl c to exit
+signal.signal(signal.SIGINT, schedulerShutdown)
+
