@@ -230,6 +230,7 @@ def scraperManager():
         except Exception as err:
             # else just print the error
             print("error : ", err)
+            break
     # for pruning
     return movies
 
