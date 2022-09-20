@@ -20,6 +20,7 @@ def SqlSend(data):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
         host = os.environ.get("host"),
+        port = os.environ.get("port"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
         database = os.environ.get("database")
@@ -61,6 +62,7 @@ def findFilm(filmTitle):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
         host = os.environ.get("host"),
+        port = os.environ.get("port"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
         database = os.environ.get("database")
@@ -98,6 +100,7 @@ def findFilmsOfSite(site):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
         host = os.environ.get("host"),
+        port = os.environ.get("port"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
         database = os.environ.get("database")
@@ -143,6 +146,7 @@ def pruneOldFilms(oldList):
             # this gets the data from .env and creates a connection to the sql server
             db = mysql.connector.connect(
                 host = os.environ.get("host"),
+                port = os.environ.get("port"),
                 username = os.environ.get("sqlusername"),
                 password = os.environ.get("password"),
                 database = os.environ.get("database")
