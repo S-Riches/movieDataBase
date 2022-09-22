@@ -1,0 +1,52 @@
+# every docker compose file should start with what version is being used
+# yml are similar to json files, but instead of declaring what type each data value is, yml reads each bit of data as a string and then sets it to a value
+# yml also doesnt use commas, instead using new lines, and doesnt use brackets but indentation instead
+# yml is slower than json which is why json is used for client / server due to its speed - whereas yml is used for configuration
+version: "3.8"
+# telling docker about different containers for the program
+services: 
+  #frontend:
+  # add when frontend is done
+  db:
+    # pull image
+    image: mysql:latest
+    # give name
+    container_name: db
+    # always restart if it fails
+    restart: always
+    # map to these ports
+    environment:
+      MYSQL_ROOT_PASSWORD: cyaninessteep-risingshrewdom_4
+      # for some reason this line wants to name and create the database
+      MYSQL_DATABASE: db
+    ports:
+      - 3307:3306
+    expose:
+      - 3307
+    
+    volumes:
+      # tells docker to look after this for us
+      - db:/var/lib/mysql
+      # initialises the sql table
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+  api:
+    container_name: api
+    # can give properties here
+    build: ./scraper_Scripts
+    # define port mapping
+    ports:
+      - 5000:5000
+    # depend on the db to be up
+    depends_on:
+      - db
+    # assign it to the backend bridge to allow communication
+    networks:
+      - backend
+volumes:
+  db:
+# create a user defined bridge to allow for routing to name instead of ip in multi container apps
+networks:
+  backend:
+    driver: bridge

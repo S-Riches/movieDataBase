@@ -22,7 +22,8 @@ def SqlSend(data):
         host = os.environ.get("host"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
-        database = os.environ.get("database")
+        database = os.environ.get("database"),
+        
     )
     # creates a cursor object to command, the buffer arguement avoids pulling multiple lines at once, as this creates errors
     mycursor = db.cursor(buffered=True)
@@ -132,7 +133,6 @@ def findFilmsOfSite(site):
 def pruneOldFilms(oldList):
     # initally rescrape the sites
     newList = scraperManager()
-    print("Pruning old films from database")
     # compare the items in both
     for item in newList:
         if (item in oldList):
@@ -230,6 +230,7 @@ def scraperManager():
         except Exception as err:
             # else just print the error
             print("error : ", err)
+            break
     # for pruning
     return movies
 
@@ -297,7 +298,7 @@ def postAll4():
 
 # start app
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
 
 # catch ctrl c to exit
 signal.signal(signal.SIGINT, schedulerShutdown)

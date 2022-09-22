@@ -1,5 +1,5 @@
 # imports
-from requests_html import HTMLSession, HTMLSession
+from requests_html import HTMLSession
 import requests
 
 # this function will get the 'free' to watch films from amazon prime, and then put them into a list to then filter through
