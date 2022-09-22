@@ -20,10 +20,10 @@ def SqlSend(data):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
         host = os.environ.get("host"),
-        port = os.environ.get("port"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
-        database = os.environ.get("database")
+        database = os.environ.get("database"),
+        
     )
     # creates a cursor object to command, the buffer arguement avoids pulling multiple lines at once, as this creates errors
     mycursor = db.cursor(buffered=True)
@@ -62,7 +62,6 @@ def findFilm(filmTitle):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
         host = os.environ.get("host"),
-        port = os.environ.get("port"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
         database = os.environ.get("database")
@@ -100,7 +99,6 @@ def findFilmsOfSite(site):
     # this gets the data from .env and creates a connection to the sql server
     db = mysql.connector.connect(
         host = os.environ.get("host"),
-        port = os.environ.get("port"),
         username = os.environ.get("sqlusername"),
         password = os.environ.get("password"),
         database = os.environ.get("database")
@@ -135,7 +133,6 @@ def findFilmsOfSite(site):
 def pruneOldFilms(oldList):
     # initally rescrape the sites
     newList = scraperManager()
-    print("Pruning old films from database")
     # compare the items in both
     for item in newList:
         if (item in oldList):
@@ -146,7 +143,6 @@ def pruneOldFilms(oldList):
             # this gets the data from .env and creates a connection to the sql server
             db = mysql.connector.connect(
                 host = os.environ.get("host"),
-                port = os.environ.get("port"),
                 username = os.environ.get("sqlusername"),
                 password = os.environ.get("password"),
                 database = os.environ.get("database")
