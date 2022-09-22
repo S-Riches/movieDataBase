@@ -10,23 +10,54 @@
 </head>
 <body>
     <div class="container-xl bg-dark text-light">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand">MovieDB</a>
+                <!-- used for mobile users to be able to change pages easier-->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                   <span class="navbar-toggler-icon"></span> 
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="index.html">Search</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="prime.html">Prime Films</a>
+                        </li> 
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="all.html">All 4 Films</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="now.html">NowTV Films</a>
+                        </li> 
+                    </ul>
+                </div>
+            </div>
+        </nav>
         <div class="row">
             <div class="col">
-                
-            </div>
-            <div class="col">
-                <h1 class="display-2">MovieDB</h1>
                 <p>
-                    this websites intention is to get all films available from a few different streaming services, then display them in one place.
-                </p>
-            </div>
-            <div class="col">
-                <p>
-                    this is where we will get the intial output for development purposes
+                    This websites intention is to get all films available from a few different streaming services, then display them in one place.
                 </p>
             </div>
         </div>
+        <div class="row">
+            <div class="col">
+                <p>
+                   This is the search function to find the film
+                </p>
+                <input type="text" id="movieQuery">
+                <button>Find film</button>
+            </div>
+        </div>
+        <div id="outBoxDiv">
+            <div class="row" id="outBox">
+                <div id="card">
 
+                </div>
+            </div>
+        </div>
     </div>
     
 </body>

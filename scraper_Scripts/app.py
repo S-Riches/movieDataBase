@@ -5,6 +5,7 @@ import time
 import moviePuller
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask_cors import CORS
 import os
 import mysql.connector
 from os.path import join, dirname
@@ -244,7 +245,8 @@ print("Starting Flask")
 # API SECTION
 # create app
 app = Flask(__name__)
-
+# needed for access control allow origin issue in js
+CORS(app)
 # scheduler for daily rescrapes
 # initialize the scheduler
 scheduler = BackgroundScheduler()
@@ -277,7 +279,7 @@ def filmRequest():
         # we store the request to the filmname
         filmName = y["filmName"]
     
-    x = findFilm(filmName)    
+    x = findFilm(filmName)  
     return jsonify(x)
 
 # api route to return all films from each site 
