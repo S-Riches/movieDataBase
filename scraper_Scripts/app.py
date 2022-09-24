@@ -270,10 +270,10 @@ def default():
     return "<p> this is default route nerd - try /prime or something</p>"
 
 # api route for finding a film in the database
-@app.route("/findFilm", methods=["GET"])
+@app.route("/findFilm", methods=["POST"])
 def filmRequest():
     # if the request method is GET
-    if request.method == "GET":
+    if request.method == "POST":
         # payload of the request
         y = request.get_json()
         # we store the request to the filmname
