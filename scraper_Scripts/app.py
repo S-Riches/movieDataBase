@@ -11,7 +11,7 @@ import mysql.connector
 from os.path import join, dirname
 from apscheduler.schedulers.background import BackgroundScheduler # adds support for scheduling functions to be run - in this use case i need to prune and rescrape everyday
 
-# this is for the environment variables - meaning i dont have to share the passwords and hostnames for my servers - v good
+# this is for the environment variables - meaning i dont have to share the passwords and host names for my servers - v good
 dotEnvPath = join(dirname(__file__), '.env')
 # get the env file
 load_dotenv(dotEnvPath) 
@@ -26,7 +26,7 @@ def SqlSend(data):
         database = os.environ.get("database"),
         
     )
-    # creates a cursor object to command, the buffer arguement avoids pulling multiple lines at once, as this creates errors
+    # creates a cursor object to command, the buffer argument avoids pulling multiple lines at once, as this creates errors
     mycursor = db.cursor(buffered=True)
     # insert command (note the ignore means that if data is in the db already, dont put it in there)
     sql = "INSERT IGNORE INTO movies (site, filmName) VALUES (%s, %s);"
@@ -87,7 +87,7 @@ def findFilm(filmTitle):
             return film
 
         else:
-            # return that the film cant be found and that the user should try again tommorrow. 
+            # return that the film cant be found and that the user should try again tomorrow. 
             print("Film Not found")
             return None
     else:
@@ -124,15 +124,15 @@ def findFilmsOfSite(site):
             filmJsonObject = json.dumps(returnText)
         else:
             print("Films Not found")
-            # return that the film cant be found and that the user should try again tommorrow. 
+            # return that the film cant be found and that the user should try again tomorrow. 
     else:
         # return an error
         print("Bad Request")
     return filmJsonObject
 
-# this function is going to be incharge of getting rid of films no longer in the database, aswell as rescrapes, to use this just plug the old list in to compare
+# this function is going to be in charge of getting rid of films no longer in the database, as well as rescrapes, to use this just plug the old list in to compare
 def pruneOldFilms(oldList):
-    # initally rescrape the sites
+    # initially rescrape the sites
     newList = scraperManager()
     # compare the items in both
     for item in newList:
@@ -189,7 +189,7 @@ def scraperManager():
         # just print the issue to the console and continue with the other scrapes
         print(err)
     
-    # this line checks if the variable exists, we use this to manage which functions sucessfully called - as they will only exist if they pass
+    # this line checks if the variable exists, we use this to manage which functions successfully called - as they will only exist if they pass
     if 'primeList' in locals():
         # for each element in the list, turn it into a dictionary
         for i in primeList:
@@ -250,7 +250,7 @@ CORS(app)
 # scheduler for daily rescrapes
 # initialize the scheduler
 scheduler = BackgroundScheduler()
-# schedule a prune everyday at 10pm to referesh the database
+# schedule a prune everyday at 10pm to refresh the database
 # a cron is a unix job scheduler command line utility - very useful for servers and very useful for my project
 scheduler.add_job(func=pruneOldFilms, args=[oldList], trigger="cron", hour="22")
 # start the scheduler

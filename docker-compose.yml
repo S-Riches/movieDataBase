@@ -16,7 +16,8 @@ services:
     restart: always
     # map to these ports
     environment:
-      MYSQL_ROOT_PASSWORD: cyaninessteep-risingshrewdom_4
+      # get this from .env
+      MYSQL_ROOT_PASSWORD: ${password}
       # for some reason this line wants to name and create the database
       MYSQL_DATABASE: db
     ports:
