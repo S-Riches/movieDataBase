@@ -300,7 +300,7 @@ def postAll4():
 
 # start app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5001)
 
 # catch ctrl c to exit
 signal.signal(signal.SIGINT, schedulerShutdown)

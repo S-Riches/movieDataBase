@@ -7,7 +7,7 @@ class Card {
 }
 // make calls to the api to get the data needed for the cards - can just change the site to get different sites
 async function getFilms(site) {
-  let response = await fetch(`http://127.0.0.1:5000/${site}`);
+  let response = await fetch(`http://127.0.0.1:5001/${site}`);
   let data = await response.json();
   return data;
 }
@@ -79,7 +79,7 @@ if (searchName === "index") {
   // also create the search function to look for a specific movie and then another for looking for a movie in a list
   async function searchFilm(title) {
     // create a request to the api which uses post and contains a body
-    let response = await fetch(`http://127.0.0.1:5000/findFilm`, {
+    let response = await fetch(`http://127.0.0.1:5001/findFilm`, {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": " application/json;charset=UTF-8" },
