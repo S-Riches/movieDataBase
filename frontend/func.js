@@ -35,33 +35,29 @@ function createCard(title, site, boxId) {
   // append the div with the text
   newEl.appendChild(titleContent);
   newEl.appendChild(siteContent);
-  // find the outbox row, checks if the number is divisable by three to ensure three to a row
-  if (boxId < 3){
-    const location = document.getElementById('outBox');
-    location.appendChild(newEl)
-  }
-  else if (boxId % 3 === 0) {
+  // find the outbox row, checks if the number is divisible by three to ensure three to a row
+  if (boxId % 3 === 0) {
     const location = document.getElementById(`outBox${boxId}`);
     // insert it
     location.appendChild(newEl);
   }
 }
 // create a row containing three cards
-function createRow(list) {
+function createRows(list) {
   // count to three - duh
-  var counter = 0;
+  let counter = 0;
+  let boxId = 0;
   for (let i = 0; i < list.length; i++) {
     // create the card
-    console.log(boxId)
     createCard(list[i][1], list[i][0], boxId);
     counter++;
     if (counter === 3) {
       // create new outbox
+      boxId += 3;
       const div = document.createElement("div");
       div.className += "row";
-      div.id += `outBox${i + 1}`;
+      div.id += `outBox${boxId}`;
       // store the value to be accessed in the create card method
-      var boxId = i + 1;
       const outBox = document.getElementById("outBox");
       document.getElementById("outBoxDiv").insertBefore(div, outBox);
       counter = 0;
@@ -92,12 +88,30 @@ if (searchName === "index") {
     return response.json();
   }
   function filmQuery() {
-    // only execute if the data isnt null
+    // only execute if the data isn't null
     if (document.getElementById("movieQuery").value != "") {
       let movieQuery = document.getElementById("movieQuery").value;
-      // .then means that we fufill the promise and therefore have to do something with the data once we get it
+      // .then means that we fulfill the promise and therefore have to do something with the data once we get it
       searchFilm(movieQuery).then((response) => {
-        createRow(response)
+        // check if the response yields anything - i.e. if it found a film
+        if (response != null) {
+          // get the element
+          let outbox = document.getElementById("outBox0");   
+          // if there are already children in the outbox
+          if (outbox.childElementCount > 0){
+            // while there are still children under the parent node
+            while(outbox.firstChild){
+              // delete the child
+              outbox.removeChild(outbox.firstChild);
+            }
+          }
+          for (let i = 0; i < response.length; i++) {
+            createCard(response[i][1], response[i][0], 0);
+          }
+        } else {
+          // if not found send alert to user
+          alert("Movie not found in database, try again tomorrow!");
+        }
       });
     }
   }
@@ -105,6 +119,6 @@ if (searchName === "index") {
   // card creation
   getFilms(searchName).then((data) => {
     // create a var called list from the returned data
-    createRow(data);
+    createRows(data);
   });
 }
