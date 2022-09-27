@@ -14,7 +14,7 @@ from apscheduler.schedulers.background import BackgroundScheduler # adds support
 # this is for the environment variables - meaning i dont have to share the passwords and host names for my servers - v good
 dotEnvPath = join(dirname(__file__), '.env')
 # get the env file
-load_dotenv(dotEnvPath) 
+load_dotenv(dotEnvPath)
 
 # function that sends the data to the sql server.
 def SqlSend(data):
@@ -22,7 +22,7 @@ def SqlSend(data):
     db = mysql.connector.connect(
         host = os.environ.get("host"),
         username = os.environ.get("sqlusername"),
-        password = os.environ.get("password"),
+        password = os.environ.get("PASSWORD"),
         database = os.environ.get("database"),
         
     )
@@ -64,7 +64,7 @@ def findFilm(filmTitle):
     db = mysql.connector.connect(
         host = os.environ.get("host"),
         username = os.environ.get("sqlusername"),
-        password = os.environ.get("password"),
+        password = os.environ.get("PASSWORD"),
         database = os.environ.get("database")
     )
     #create a cursor
@@ -101,7 +101,7 @@ def findFilmsOfSite(site):
     db = mysql.connector.connect(
         host = os.environ.get("host"),
         username = os.environ.get("sqlusername"),
-        password = os.environ.get("password"),
+        password = os.environ.get("PASSWORD"),
         database = os.environ.get("database")
     )
     #create a cursor
@@ -145,7 +145,7 @@ def pruneOldFilms(oldList):
             db = mysql.connector.connect(
                 host = os.environ.get("host"),
                 username = os.environ.get("sqlusername"),
-                password = os.environ.get("password"),
+                password = os.environ.get("PASSWORD"),
                 database = os.environ.get("database")
             )
             #create a cursor

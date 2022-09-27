@@ -10,8 +10,6 @@ services:
   db:
     # pull image
     image: mysql:latest
-    env_file:
-      - ./scraper_Scripts/.env
     # give name
     container_name: db
     # always restart if it fails
@@ -19,7 +17,7 @@ services:
     # map to these ports
     environment:
       # get this from .env
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: "${PASSWORD}"
       # for some reason this line wants to name and create the database
       MYSQL_DATABASE: db
     ports:
